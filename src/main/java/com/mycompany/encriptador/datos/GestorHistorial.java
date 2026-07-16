@@ -104,4 +104,15 @@ public class GestorHistorial {
     }
     return historial;
 }
+    
+    public static void eliminarRegistro(int id) throws SQLException {
+    String sql = "DELETE FROM Frases WHERE id = ?";
+    
+    try (java.sql.Connection conn = ConexionBD.conectar();
+         java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        pstmt.setInt(1, id);
+        pstmt.executeUpdate();
+    }
+}
 }

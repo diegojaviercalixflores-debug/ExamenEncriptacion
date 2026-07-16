@@ -100,6 +100,7 @@ import java.util.Map;
         btnDesencriptar = new javax.swing.JButton();
         btnCargarConfig = new javax.swing.JButton();
         BtnSalir = new javax.swing.JButton();
+        btnDesencriptar1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -134,29 +135,37 @@ import java.util.Map;
         BtnSalir.setText("Salir");
         BtnSalir.addActionListener(this::BtnSalirActionPerformed);
 
+        btnDesencriptar1.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
+        btnDesencriptar1.setText("Eliminar seleccionado");
+        btnDesencriptar1.addActionListener(this::btnDesencriptar1ActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnEncriptar)
-                .addGap(66, 66, 66)
-                .addComponent(btnDesencriptar)
-                .addGap(66, 66, 66)
-                .addComponent(btnCargarConfig)
-                .addGap(54, 54, 54))
             .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(BtnSalir)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 572, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(txtEntrada, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
+                        .addComponent(btnEncriptar)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnDesencriptar)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnCargarConfig)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnDesencriptar1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(BtnSalir)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(txtEntrada, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(143, 143, 143))
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 607, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -169,12 +178,13 @@ import java.util.Map;
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(btnDesencriptar)
                     .addComponent(btnEncriptar)
-                    .addComponent(btnCargarConfig))
+                    .addComponent(btnCargarConfig)
+                    .addComponent(btnDesencriptar1))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(BtnSalir)
-                .addContainerGap(31, Short.MAX_VALUE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         pack();
@@ -194,6 +204,53 @@ import java.util.Map;
         System.exit(0);
     }
     }//GEN-LAST:event_BtnSalirActionPerformed
+
+    private void btnDesencriptar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesencriptar1ActionPerformed
+        // TODO add your handling code here:
+        int filaSeleccionada = tablaHistorial.getSelectedRow();
+
+    // 1. Validación: Asegurar que haya seleccionado una fila
+    if (filaSeleccionada == -1) {
+        mostrarError("Por favor, selecciona una fila de la tabla para eliminar.");
+        return;
+    }
+
+    // 2. Obtener el ID del registro (Columna 0 de la tabla) y el texto para el mensaje
+    int idSeleccionado = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
+    String textoOriginal = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
+
+    // 3. Confirmar la eliminación con el usuario
+    int confirmacion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Estás seguro de que deseas eliminar este registro?\n\"" + textoOriginal + "\"",
+            "Confirmar Eliminación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+    );
+
+    if (confirmacion == JOptionPane.YES_OPTION) {
+        try {
+            // 4. Borrar de la Base de Datos SQLite
+            GestorHistorial.eliminarRegistro(idSeleccionado);
+
+            // 5. Borrar de la tabla visual de manera inmediata
+            modeloTabla.removeRow(filaSeleccionada);
+
+            JOptionPane.showMessageDialog(this, 
+                    "Registro eliminado correctamente de la base de datos.", 
+                    "Éxito", 
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // Deshabilitamos el botón de desencriptar si la tabla se quedó vacía
+            if (modeloTabla.getRowCount() == 0) {
+                btnDesencriptar.setEnabled(false);
+            }
+
+        } catch (SQLException ex) {
+            mostrarError("No se pudo eliminar el registro de la base de datos: " + ex.getMessage());
+        }
+    }
+    }//GEN-LAST:event_btnDesencriptar1ActionPerformed
 
     private void asociarEventosLogicos() {
 
@@ -323,6 +380,7 @@ import java.util.Map;
     private javax.swing.JButton BtnSalir;
     private javax.swing.JButton btnCargarConfig;
     private javax.swing.JButton btnDesencriptar;
+    private javax.swing.JButton btnDesencriptar1;
     private javax.swing.JButton btnEncriptar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
