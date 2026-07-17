@@ -33,26 +33,20 @@ import java.util.Map;
         public VistaEncriptador() {
             configManager = new ConfiguracionManager();
          
-            // Inicializa componentes del Diseñador
             initComponents();
             this.setLocationRelativeTo(null);
-            // Configuramos el JTable manualmente para que tenga sus columnas
             configurarTabla();
             cargarDatosDesdeBD();
-            // Asociamos nuestra lógica
             asociarEventosLogicos();
         }
 
         private void configurarTabla() {
             modeloTabla = new DefaultTableModel() {
-                // Hacemos que las celdas de la tabla no sean editables al hacer doble clic
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return false;
                 }
             };
-
-            // Agregamos las columnas requeridas
             modeloTabla.addColumn("ID");
             modeloTabla.addColumn("Texto Original");
             modeloTabla.addColumn("Texto Encriptado");
@@ -62,22 +56,16 @@ import java.util.Map;
         
         private void cargarDatosDesdeBD() {
     try {
-        // 1. Limpiamos cualquier fila que tenga la tabla por defecto para no duplicar
         modeloTabla.setRowCount(0);
 
-        // 2. Llamamos a un método en el GestorHistorial para obtener los registros guardados
         java.util.List<Object[]> registros = GestorHistorial.obtenerHistorialCompleto();
-
-        // 3. Recorremos los registros y los agregamos uno a uno a la tabla
         for (Object[] fila : registros) {
             modeloTabla.addRow(fila);
         }
-        
-        // Si la tabla tiene datos, habilitamos el botón de desencriptar por comodidad
+       
         if (modeloTabla.getRowCount() > 0) {
             btnDesencriptar.setEnabled(true);
         }
-
     } catch (SQLException ex) {
         mostrarError("No se pudieron cargar los datos históricos: " + ex.getMessage());
     }
@@ -103,6 +91,7 @@ import java.util.Map;
         btnDesencriptar1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Encriptador");
 
         tablaHistorial.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -209,17 +198,14 @@ import java.util.Map;
         // TODO add your handling code here:
         int filaSeleccionada = tablaHistorial.getSelectedRow();
 
-    // 1. Validación: Asegurar que haya seleccionado una fila
     if (filaSeleccionada == -1) {
         mostrarError("Por favor, selecciona una fila de la tabla para eliminar.");
         return;
     }
 
-    // 2. Obtener el ID del registro (Columna 0 de la tabla) y el texto para el mensaje
     int idSeleccionado = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
     String textoOriginal = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
 
-    // 3. Confirmar la eliminación con el usuario
     int confirmacion = JOptionPane.showConfirmDialog(
             this,
             "¿Estás seguro de que deseas eliminar este registro?\n\"" + textoOriginal + "\"",
@@ -230,10 +216,8 @@ import java.util.Map;
 
     if (confirmacion == JOptionPane.YES_OPTION) {
         try {
-            // 4. Borrar de la Base de Datos SQLite
             GestorHistorial.eliminarRegistro(idSeleccionado);
 
-            // 5. Borrar de la tabla visual de manera inmediata
             modeloTabla.removeRow(filaSeleccionada);
 
             JOptionPane.showMessageDialog(this, 
@@ -241,7 +225,6 @@ import java.util.Map;
                     "Éxito", 
                     JOptionPane.INFORMATION_MESSAGE);
 
-            // Deshabilitamos el botón de desencriptar si la tabla se quedó vacía
             if (modeloTabla.getRowCount() == 0) {
                 btnDesencriptar.setEnabled(false);
             }
@@ -254,7 +237,6 @@ import java.util.Map;
 
     private void asociarEventosLogicos() {
 
-            // EVENTO 1: Cargar la configuración desde config.txt
             btnCargarConfig.addActionListener(e -> {
                 JFileChooser fileChooser = new JFileChooser(".");
                 fileChooser.setDialogTitle("Seleccione el archivo config.txt");
@@ -278,7 +260,6 @@ import java.util.Map;
                 }
             });
 
-            // EVENTO 2: Encriptar texto y guardarlo en la Base de Datos SQLite
             btnEncriptar.addActionListener(e -> {
                 String texto = txtEntrada.getText().trim();
                 if (texto.isEmpty()) {
@@ -290,49 +271,38 @@ import java.util.Map;
                 String encriptado = Encriptador.encriptar(texto, mapaActual);
 
                 try {
-                    // Guardamos en la base de datos y obtenemos el ID autogenerado
                     int idGuardado = GestorHistorial.guardarFraseYConfiguracion(texto, encriptado, mapaActual);
 
-                    // Agregamos de manera visual la fila al JTable de forma inmediata
                     modeloTabla.addRow(new Object[]{idGuardado, texto, encriptado});
-
-                    // Habilitamos el botón de desencriptar si hay al menos una fila
                     btnDesencriptar.setEnabled(true);
-                    txtEntrada.setText(""); // Limpiamos la entrada
+                    txtEntrada.setText(""); 
 
                 } catch (SQLException ex) {
                     mostrarError("Error al guardar en la base de datos SQLite: " + ex.getMessage());
                 }
             });
 
-            // EVENTO 3: Desencriptar la fila que el usuario tenga seleccionada en la JTable
             btnDesencriptar.addActionListener(e -> {
                 int filaSeleccionada = tablaHistorial.getSelectedRow();
 
-                // Validación: Asegurarse de que el usuario haya hecho clic en una fila
                 if (filaSeleccionada == -1) {
                     mostrarError("Por favor, selecciona una fila de la tabla para desencriptar.");
                     return;
                 }
 
-                // Obtenemos el ID de la fila seleccionada (Columna 0 de la tabla)
                 int idSeleccionado = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
 
                 try {
-                    // 1. Recuperamos el texto encriptado histórico de la BD
                     String cifrado = GestorHistorial.obtenerTextoEncriptado(idSeleccionado);
                     if (cifrado == null) {
                         mostrarError("No se encontró el registro seleccionado en la base de datos.");
                         return;
                     }
 
-                    // 2. Recuperamos el mapa inverso exacto de esa frase
                     Map<Character, Character> mapaInverso = GestorHistorial.obtenerMapaInversoPorFrase(idSeleccionado);
 
-                    // 3. Desencriptamos
                     String desencriptado = Encriptador.desencriptar(cifrado, mapaInverso);
 
-                    // Mostramos el resultado de manera elegante en un cuadro de diálogo informativo
                     JOptionPane.showMessageDialog(this,
                             "--- Desencriptación Exitosa ---\n\n"
                             + "ID del registro: " + idSeleccionado + "\n"
@@ -372,7 +342,6 @@ import java.util.Map;
         }
         //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new VistaEncriptador().setVisible(true));
     }
 

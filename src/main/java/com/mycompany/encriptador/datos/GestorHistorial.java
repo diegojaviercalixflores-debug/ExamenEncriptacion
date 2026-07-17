@@ -19,7 +19,7 @@ public class GestorHistorial {
         int fraseId = -1;
 
         try (Connection conn = ConexionBD.conectar()) {
-            conn.setAutoCommit(false); // Transacción para garantizar integridad de datos
+            conn.setAutoCommit(false); 
 
             try (PreparedStatement psFrase = conn.prepareStatement(sqlFrase, Statement.RETURN_GENERATED_KEYS)) {
                 psFrase.setString(1, original);
@@ -85,8 +85,6 @@ public class GestorHistorial {
     public static java.util.List<Object[]> obtenerHistorialCompleto() throws SQLException {
     java.util.List<Object[]> historial = new java.util.ArrayList<>();
     
-    // Asegúrate de que los nombres de la tabla y columnas coincidan exactamente con tu BD
-    // En este caso asumimos que tu tabla se llama "Frases" con columnas: id, texto_original, texto_encriptado
     String sql = "SELECT id, texto_original, texto_encriptado FROM Frases ORDER BY id ASC";
     
     try (java.sql.Connection conn = ConexionBD.conectar(); // Ajusta al método de conexión que uses
@@ -98,7 +96,6 @@ public class GestorHistorial {
             String original = rs.getString("texto_original");
             String encriptado = rs.getString("texto_encriptado");
             
-            // Creamos una fila con los 3 datos correspondientes a las columnas del JTable
             historial.add(new Object[]{id, original, encriptado});
         }
     }

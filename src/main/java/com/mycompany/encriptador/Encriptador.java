@@ -13,10 +13,7 @@ import javax.swing.SwingUtilities;
  */
 public class Encriptador {
     public static void main(String[] args) {
-        // 1. Inicializa la BD en segundo plano (crea tablas si no existen)
         ConexionBD.inicializarTablas();
-
-        // 2. Ejecuta y visualiza la UI de manera segura en el Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
             new VistaEncriptador().setVisible(true);
         });
